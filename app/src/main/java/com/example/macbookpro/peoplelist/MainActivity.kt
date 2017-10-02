@@ -1,5 +1,6 @@
 package com.example.macbookpro.peoplelist
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
@@ -10,10 +11,11 @@ import android.view.View
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.ArrayAdapter
+import kotlinx.android.synthetic.main.activity_detail.*
 import kotlinx.android.synthetic.main.content_main.*
 
 class MainActivity : AppCompatActivity() {
-    private val povo: MutableList<Person> by lazy { mutableListOf<Person>() }
+    private val peoplo: MutableList<Person> by lazy { mutableListOf<Person>() }
     private var adapter : ArrayAdapter<Person>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,14 +26,30 @@ class MainActivity : AppCompatActivity() {
 
         val fab = findViewById(R.id.fab) as FloatingActionButton
         fab.setOnClickListener {
-            var intent = Intent(this, DetailActivity::class.java)
-            startActivity(intent)
+            val intent = Intent(this, DetailActivity::class.java)
+            startActivityForResult(intent, REQUEST_INSERT)
+        }
+        listPerson.setOnItemClickListener { _, _, position, _ ->
+            ItemClickShortToast(peoplo[position].name)
         }
 
-        adapter = ArrayAdapter<Person>(this, android.R.layout.simple_expandable_list_item_1, povo)
+        adapter = ArrayAdapter<Person>(this, android.R.layout.simple_expandable_list_item_1, peoplo)
         listPerson.adapter = adapter
 
 
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if(requestCode == REQUEST_INSERT && resultCode == RESULT_OK) {
+            val person = data?.getSerializableExtra(DetailActivity.EXTRA_PERSON) as? Person
+            if (person != null) {
+                peoplo.add(person)
+                peoplo.sortBy { it.name }
+                adapter?.notifyDataSetChanged()
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -51,5 +69,9 @@ class MainActivity : AppCompatActivity() {
             true
         } else super.onOptionsItemSelected(item)
 
+    }
+
+    companion object {
+        val REQUEST_INSERT = 0
     }
 }
